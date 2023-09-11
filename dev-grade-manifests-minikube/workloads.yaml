@@ -1,0 +1,135 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fleetman-queue
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: queue
+  template:
+    metadata:
+      name: fleetman-queue
+      labels:
+        app: queue
+    spec:
+      containers:
+      - name: fleetman-queue-image
+        image: richardchesterwood/k8s-fleetman-queue:release2
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: position-simulator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: position-simulator
+  template:
+    metadata:
+      name: fleetman-position-simulator
+      labels:
+        app: position-simulator
+    spec:
+      containers:
+      - name: position-simulator
+        image: richardchesterwood/k8s-fleetman-position-simulator:release2
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: production-microservice 
+
+
+---
+
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: position-tracker
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: position-tracker
+  template:
+    metadata:
+      name: fleetman-position-tracker
+      labels:
+        app: position-tracker
+    spec:
+      containers:
+      - name: position-tracker
+        image: richardchesterwood/k8s-fleetman-position-tracker:release3
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: production-microservice 
+
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: api-gateway
+  template:
+    metadata:
+      name: fleetman-api-gateway
+      labels:
+        app: api-gateway
+    spec:
+      containers:
+      - name: api-gateway
+        image: richardchesterwood/k8s-fleetman-api-gateway:release2
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: production-microservice 
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: webapp
+  template:
+    metadata:
+      name: fleetman-webapp
+      labels:
+        app: webapp
+    spec:
+      containers:
+      - name: webapp
+        image: richardchesterwood/k8s-fleetman-webapp-angular:release2
+        env:
+        - name: SPRING_PROFILES_ACTIVE
+          value: production-microservice 
+
+--- 
+
+
+## All the images were upgraded from release1 to release2 for tracking the trucks with red line
+
+## The red line of the trucks is being stored in memory in the position tracker microservice, so for persistence we shd connect to a mongo DB
+
+
+## So inorder to simulate stop the pod (position-tracker) , if no persistence then the truck line will start from beginning
+
+
+## So we have updated the version for position-tracker so that it stores the data in mongo db, rather than in memory(release2 to release3)
+
+## The position tracker is connecting to mongoDB via the service discovery, and the path is hard-coded in the pt/src/main/resources/application-production-microservice.properties - fleetman-mongodb.default.svc.cluster.local
+
+
+## Inorder to persist the data, we upgraded the version of position tracker to version :release3, SO the data is persisted in mongodb pod, but what if the mongodb pod itself crashes, then all our data is lost, so inorder to persist the data we are mounting volumes

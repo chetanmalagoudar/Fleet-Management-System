@@ -1,0 +1,67 @@
+# # Mounting the data in host machine using volumes
+# apiVersion: apps/v1
+# kind: Deployment
+# metadata:
+#   name: mongodb
+# spec:
+#   selector:
+#     matchLabels:
+#       app: mongodb
+#   template:
+#     metadata:
+#       labels:
+#         app: mongodb
+#     spec:
+#       containers:
+#       - name: mongodb
+#         image: mongo:3.6.5-jessie
+#         volumeMounts:
+#         - name: mongo-persistent-storage
+#           mountPath: /data/db  # Container Path where the mongo db is stored
+#       volumes:
+#       - name: mongo-persistent-storage ## This shd match with line 18 - Volume Mounts name
+#         hostPath:
+#           path: /mnt/some/directory/structure ## Since am using Minikube , so this path will be created in the minikube container
+
+
+---
+
+# Mounting on host machine using PVC
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongodb
+spec:
+  selector:
+    matchLabels:
+      app: mongodb
+  template:
+    metadata:
+      labels:
+        app: mongodb
+    spec:
+      containers:
+      - name: mongodb
+        image: mongo:3.6.5-jessie
+        volumeMounts:
+        - name: mongo-persistent-storage
+          mountPath: /data/db  # Container Path where the mongo db is stored
+      volumes:
+      - name: mongo-persistent-storage ## This shd match with line 18 - Volume Mounts name
+        ## pointer to the configuration of HOW we want the mount to be implemented
+        persistentVolumeClaim:
+          claimName: mongo-pvc
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: fleetman-mongodb
+spec:
+  selector:
+    app: mongodb
+  ports:
+  - name: db
+    port: 27017
+  type: ClusterIP
