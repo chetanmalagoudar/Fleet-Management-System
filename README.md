@@ -2,7 +2,7 @@
 
 ## Overview
 
-This repository contains Kubernetes manifests for deploying the Fleet Management System application, supporting both development and production-grade deployments. Below, we'll provide details on how to use these manifests for different deployment scenarios.
+This repository contains Kubernetes manifests for deploying the Fleet Management System application, supporting both development and production-grade deployments.
 
 ## Development-Grade Deployment
 
